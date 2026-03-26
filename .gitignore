@@ -52,3 +52,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Exclude serverless env
+node_modules/
+*.json
