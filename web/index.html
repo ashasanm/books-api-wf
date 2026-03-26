@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Books API Explorer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2e3147;
+      --accent: #6c63ff;
+      --accent2: #00d2ff;
+      --text: #e2e4f0;
+      --muted: #6b7094;
+      --success: #22c55e;
+      --error: #f87171;
+      --warn: #fbbf24;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    header h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: var(--muted); margin-top: .4rem; font-size: .95rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 640px;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .badge {
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .2rem .55rem;
+      border-radius: 6px;
+      letter-spacing: .04em;
+    }
+    .badge-post { background: #7c3aed33; color: #a78bfa; border: 1px solid #7c3aed55; }
+    .badge-get  { background: #0ea5e933; color: #38bdf8; border: 1px solid #0ea5e955; }
+
+    label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: .3rem; }
+    input, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: .55rem .75rem;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+      margin-bottom: .9rem;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 160px; font-family: 'Fira Mono', monospace; }
+
+    button {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      padding: .6rem 1.4rem;
+      transition: opacity .2s, transform .1s;
+    }
+    button:hover { opacity: .88; }
+    button:active { transform: scale(.97); }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+
+    .response-box {
+      margin-top: 1.2rem;
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .response-box.visible { display: block; }
+    .response-header {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .5rem .8rem;
+      font-size: .8rem;
+      font-weight: 600;
+    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-ok  { background: var(--success); }
+    .dot-err { background: var(--error); }
+    .dot-warn{ background: var(--warn); }
+    .response-header.ok   { background: #16a34a22; color: var(--success); border: 1px solid #16a34a44; }
+    .response-header.err  { background: #dc262622; color: var(--error);   border: 1px solid #dc262644; border-bottom: none; }
+    .response-header.warn { background: #d9770622; color: var(--warn);    border: 1px solid #d9770644; border-bottom: none; }
+    pre {
+      background: #0b0d14;
+      padding: .9rem 1rem;
+      font-size: .82rem;
+      font-family: 'Fira Mono', monospace;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .base-url-row {
+      width: 100%;
+      max-width: 640px;
+      margin-bottom: 1.5rem;
+    }
+    .base-url-row label { font-size: .82rem; color: var(--muted); margin-bottom: .3rem; display: block; }
+
+    footer {
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: .78rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Books API Explorer</h1>
+  <p>Interact with the Books REST API directly from your browser.</p>
+</header>
+
+<!-- Base URL config -->
+<div class="base-url-row">
+  <label for="baseUrl">API Base URL</label>
+  <input id="baseUrl" type="text" value="http://localhost:8000" placeholder="https://<api-gateway-id>.execute-api.us-east-1.amazonaws.com/dev" />
+</div>
+
+<!-- POST /api/books -->
+<div class="card">
+  <h2><span class="badge badge-post">POST</span> /api/books — Create a book</h2>
+  <label for="postBody">Request body (JSON)</label>
+  <textarea id="postBody">{
+  "id": "/books/id1",
+  "author": "/authors/id1",
+  "name": "Fancy Tech",
+  "note": "Awesome book for beginners in Fancy.",
+  "serial": "C040102"
+}</textarea>
+  <button id="postBtn" onclick="createBook()">Send Request</button>
+
+  <div class="response-box" id="postResponse">
+    <div class="response-header" id="postResponseHeader"></div>
+    <pre id="postResponseBody"></pre>
+  </div>
+</div>
+
+<!-- GET /api/books/{id} -->
+<div class="card">
+  <h2><span class="badge badge-get">GET</span> /api/books/{id} — Retrieve a book</h2>
+  <label for="bookId">Book ID (short id, e.g. <code>id1</code>)</label>
+  <input id="bookId" type="text" value="id1" />
+  <button id="getBtn" onclick="getBook()">Send Request</button>
+
+  <div class="response-box" id="getResponse">
+    <div class="response-header" id="getResponseHeader"></div>
+    <pre id="getResponseBody"></pre>
+  </div>
+</div>
+
+<footer>Books API · FastAPI + DynamoDB + AWS Lambda + Serverless Framework</footer>
+
+<script>
+  function base() {
+    return document.getElementById('baseUrl').value.replace(/\/$/, '');
+  }
+
+  function statusClass(code) {
+    if (code >= 200 && code < 300) return 'ok';
+    if (code >= 400 && code < 500) return 'warn';
+    return 'err';
+  }
+  function dotClass(code) {
+    if (code >= 200 && code < 300) return 'dot-ok';
+    if (code >= 400 && code < 500) return 'dot-warn';
+    return 'dot-err';
+  }
+
+  function showResponse(prefix, status, statusText, body) {
+    const box    = document.getElementById(prefix + 'Response');
+    const header = document.getElementById(prefix + 'ResponseHeader');
+    const pre    = document.getElementById(prefix + 'ResponseBody');
+
+    const cls = statusClass(status);
+    header.className = 'response-header ' + cls;
+    header.innerHTML = `<span class="status-dot ${dotClass(status)}"></span>HTTP ${status} ${statusText}`;
+
+    try { pre.textContent = JSON.stringify(JSON.parse(body), null, 2); }
+    catch { pre.textContent = body || '(empty body)'; }
+
+    box.className = 'response-box visible';
+  }
+
+  async function createBook() {
+    const btn = document.getElementById('postBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      const body = document.getElementById('postBody').value;
+      const resp = await fetch(`${base()}/api/books`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      const text = await resp.text();
+      showResponse('post', resp.status, resp.statusText, text);
+    } catch (e) {
+      showResponse('post', 0, 'Network Error', e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send Request';
+    }
+  }
+
+  async function getBook() {
+    const btn = document.getElementById('getBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      const id = document.getElementById('bookId').value.trim();
+      const resp = await fetch(`${base()}/api/books/${encodeURIComponent(id)}`);
+      const text = await resp.text();
+      showResponse('get', resp.status, resp.statusText, text);
+    } catch (e) {
+      showResponse('get', 0, 'Network Error', e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send Request';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+org: ashasanm
+app: books-api
+service: books-api
+
+stages:
+  default:
+    params:
+      region: ap-southeast-2
+      tableName: ${self:service}-${sls:stage}-books
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: ${param:region}
+  environment:
+    DYNAMODB_TABLE: ${param:tableName}
+    AWS_ACCOUNT_REGION: ${param:region}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - !GetAtt BooksTable.Arn
+
+build:
+  esbuild: false
+
+functions:
+  api:
+    handler: app.main.handler
+    events:
+      - httpApi:
+          path: /api/books
+          method: POST
+      - httpApi:
+          path: /api/books/{book_id}
+          method: GET
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: non-linux  # use Docker on non-Linux hosts for native deps
+    slim: true
+    strip: false
+
+resources:
+  Resources:
+    BooksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${param:tableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: bookId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: bookId
+            KeyType: HASH
