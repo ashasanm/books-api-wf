@@ -28,6 +28,17 @@ provider:
             - dynamodb:Scan
           Resource:
             - !GetAtt BooksTable.Arn
+  httpApi:
+    cors:
+      allowedOrigins:
+        - https://heroic-cocada-2b9e48.netlify.app
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+      maxAge: 600
 
 build:
   esbuild: false
@@ -42,9 +53,6 @@ functions:
       - httpApi:
           path: /api/books/{id}
           method: GET
-
-plugins:
-  - serverless-python-requirements
 
 custom:
   pythonRequirements:
