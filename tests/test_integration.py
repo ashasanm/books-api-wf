@@ -9,6 +9,7 @@ Run with:
 
 import pytest
 import boto3
+from unittest.mock import patch
 from moto import mock_aws
 from fastapi.testclient import TestClient
 
@@ -18,23 +19,22 @@ from app.main import app
 @pytest.fixture()
 def client():
     """
-    Single fixture that:
-    1. Starts the moto mock (intercepts ALL boto3 calls for this test)
-    2. Creates the DynamoDB table inside the mock context
-    3. Yields a TestClient that runs in the same mock context
-    4. Tears everything down automatically when the test ends
+    Start moto, create the table, then patch _get_table so every call
+    inside the app returns the same moto-backed table object.
+    This avoids thread-context issues where moto intercepts are lost.
     """
     with mock_aws():
-        dynamodb = boto3.resource("dynamodb", region_name="ap-southeast-2")
-        dynamodb.create_table(
+        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+        table = dynamodb.create_table(
             TableName="books-integration",
             KeySchema=[{"AttributeName": "bookId", "KeyType": "HASH"}],
             AttributeDefinitions=[{"AttributeName": "bookId", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
         )
 
-        with TestClient(app) as c:
-            yield c
+        with patch("app.repository._get_table", return_value=table):
+            with TestClient(app) as c:
+                yield c
 
 
 BOOK_PAYLOAD = {
@@ -49,16 +49,12 @@ BOOK_PAYLOAD = {
 class TestBooksIntegration:
     def test_create_then_get_book(self, client):
         """Full round-trip: create a book, then retrieve it."""
-        # ------- Create --------
         post_resp = client.post("/api/books", json=BOOK_PAYLOAD)
         assert post_resp.status_code == 201, post_resp.text
 
-        # ------- Retrieve --------
         get_resp = client.get("/api/books/integ1")
-
         assert get_resp.status_code == 200
         body = get_resp.json()
-        
         assert body["id"] == "/books/integ1"
         assert body["name"] == "Integration Testing 101"
         assert body["serial"] == "INT001"
