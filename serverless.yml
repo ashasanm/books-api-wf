@@ -31,7 +31,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - https://heroic-cocada-2b9e48.netlify.app
+        - https://unique-quokka-a2c778.netlify.app
       allowedHeaders:
         - Content-Type
         - Authorization
@@ -42,6 +42,7 @@ provider:
 
 build:
   esbuild: false
+  python: true
 
 functions:
   api:
@@ -56,6 +57,8 @@ functions:
 
 custom:
   pythonRequirements:
+    useUv: false
+    fileName: requirements.txt
     dockerizePip: non-linux  # use Docker on non-Linux hosts for native deps
     slim: true
     strip: false
