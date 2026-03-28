@@ -1,12 +1,23 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: ashasanm
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 app: books-api
-service: books-api
+service: books-api-dev-books
 
 stages:
   default:
     params:
       region: ap-southeast-2
       tableName: ${self:service}-${sls:stage}-books
+      # Add this to handle different CORS origins
+      allowedOrigin: "*" 
+
+  prod:
+    params:
+      region: ap-southeast-2
+      tableName: books-production-table
+      # Tighten security for production
+      allowedOrigin: "https://musical-crumble-09ee41.netlify.app"
 
 provider:
   name: aws
@@ -31,18 +42,32 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - https://unique-quokka-a2c778.netlify.app
-      allowedHeaders:
-        - Content-Type
-        - Authorization
+        - "*" # this should be change to web app endpoint
       allowedMethods:
         - GET
         - POST
-      maxAge: 600
+        - OPTIONS
+      allowedHeaders:
+        - '*'
 
-build:
-  esbuild: false
-  python: true
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+    - '!.venv/**'
+    - '!venv/**'
+    - '!.git/**'
+    - '!__pycache__/**'
+    - '!.pytest_cache/**'
+
+custom:
+  pythonRequirements:
+    slim: true
+    strip: true          # Removes debug symbols from shared libraries (.so files)
+    dockerizePip: true
+    noDeploy:
+      - boto3            # Lambda already has boto3; don't include it in zip
+      - botocore
 
 functions:
   api:
@@ -52,16 +77,8 @@ functions:
           path: /api/books
           method: POST
       - httpApi:
-          path: /api/books/{id}
+          path: /api/books/{book_id}
           method: GET
-
-custom:
-  pythonRequirements:
-    useUv: false
-    fileName: requirements.txt
-    dockerizePip: non-linux  # use Docker on non-Linux hosts for native deps
-    slim: true
-    strip: false
 
 resources:
   Resources:
@@ -71,8 +88,8 @@ resources:
         TableName: ${param:tableName}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: bookId
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: bookId
             KeyType: HASH
