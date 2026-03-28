@@ -4,6 +4,7 @@ uvicorn>=0.42.0
 mangum==0.21.0
 boto3==1.42.76
 pydantic>=2.9.0
+pydantic-settings==2.13.1
 
 # Test / dev dependencies
 pytest==8.3.4

@@ -56,3 +56,6 @@ logs/
 # Exclude serverless env
 node_modules/
 *.json
+.serverless
+.pytest_cache
+.pip-cache
