@@ -15,13 +15,14 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.settings import settings
+from app.repository import BookRepository
 
 
 @pytest.fixture()
 def client():
     """
-    Start moto, create the table using the name from settings,
-    then patch _get_table so every call returns the same moto-backed table.
+    Start moto, create the table, then inject a fresh BookRepository
+    instance that points at the moto-backed table.
     """
     with mock_aws():
         dynamodb = boto3.resource("dynamodb", region_name=settings.aws_account_region)
@@ -32,7 +33,11 @@ def client():
             BillingMode="PAY_PER_REQUEST",
         )
 
-        with patch("app.repository._get_table", return_value=table):
+        # Create a real BookRepository but swap its table for the moto one
+        repo = BookRepository.__new__(BookRepository)
+        repo._table = table
+
+        with patch("app.routers.books.book_repository", repo):
             with TestClient(app) as c:
                 yield c
 
