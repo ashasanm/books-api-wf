@@ -1,12 +1,23 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
 org: ashasanm
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 app: books-api
-service: books-api
+service: books-api-dev-books
 
 stages:
   default:
     params:
       region: ap-southeast-2
       tableName: ${self:service}-${sls:stage}-books
+      # Add this to handle different CORS origins
+      allowedOrigin: "*" 
+
+  prod:
+    params:
+      region: ap-southeast-2
+      tableName: books-production-table
+      # Tighten security for production
+      allowedOrigin: "https://musical-crumble-09ee41.netlify.app"
 
 provider:
   name: aws
@@ -28,9 +39,35 @@ provider:
             - dynamodb:Scan
           Resource:
             - !GetAtt BooksTable.Arn
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "*" # this should be change to web app endpoint
+      allowedMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowedHeaders:
+        - '*'
 
-build:
-  esbuild: false
+package:
+  individually: true
+  patterns:
+    - '!node_modules/**'
+    - '!.venv/**'
+    - '!venv/**'
+    - '!.git/**'
+    - '!__pycache__/**'
+    - '!.pytest_cache/**'
+
+custom:
+  pythonRequirements:
+    slim: true
+    strip: true          # Removes debug symbols from shared libraries (.so files)
+    dockerizePip: true
+    noDeploy:
+      - boto3            # Lambda already has boto3; don't include it in zip
+      - botocore
 
 functions:
   api:
@@ -42,15 +79,6 @@ functions:
       - httpApi:
           path: /api/books/{book_id}
           method: GET
-
-plugins:
-  - serverless-python-requirements
-
-custom:
-  pythonRequirements:
-    dockerizePip: non-linux  # use Docker on non-Linux hosts for native deps
-    slim: true
-    strip: false
 
 resources:
   Resources:
