@@ -10,14 +10,14 @@ stages:
       region: ap-southeast-2
       tableName: ${self:service}-${sls:stage}-books
       # Add this to handle different CORS origins
-      allowedOrigin: "*" 
+      allowedOrigins: "*" 
 
   prod:
     params:
       region: ap-southeast-2
       tableName: books-production-table
       # Tighten security for production
-      allowedOrigin: "https://musical-crumble-09ee41.netlify.app"
+      allowedOrigins: "https://musical-crumble-09ee41.netlify.app"
 
 provider:
   name: aws
@@ -26,6 +26,7 @@ provider:
   environment:
     DYNAMODB_TABLE: ${param:tableName}
     AWS_ACCOUNT_REGION: ${param:region}
+    ALLOWED_ORIGINS: ${param:allowedOrigins}
   iam:
     role:
       statements:
@@ -42,7 +43,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - "*" # this should be change to web app endpoint
+        - ${param:allowedOrigins} # this should be change to web app endpoint
       allowedMethods:
         - GET
         - POST
