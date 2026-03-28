@@ -316,8 +316,8 @@ A zero-dependency, single-file browser UI is included at `web/index.html`.
 1. Set the **API Base URL** to your running API (local or AWS endpoint).
 2. Use the **Create a book** form to POST a new book.
 3. Use the **Retrieve a book** form to GET a book by id. 
-4. Make sure you are on `/web` dir, run this command to serve `python3 -m http.server 8000`
-5. Open `localhost:8000` from any Browser
+4. Make sure you are on `/web` dir, run this command to serve `python3 -m http.server 3000`
+5. Open `localhost:3000` from any Browser
 
 The UI works directly against the live API — no build step.  
 It fulfils the bonus requirement of accessing the API from a web application running in a browser.
