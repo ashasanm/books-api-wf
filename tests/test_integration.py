@@ -14,19 +14,19 @@ from moto import mock_aws
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.settings import settings
 
 
 @pytest.fixture()
 def client():
     """
-    Start moto, create the table, then patch _get_table so every call
-    inside the app returns the same moto-backed table object.
-    This avoids thread-context issues where moto intercepts are lost.
+    Start moto, create the table using the name from settings,
+    then patch _get_table so every call returns the same moto-backed table.
     """
     with mock_aws():
-        dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
+        dynamodb = boto3.resource("dynamodb", region_name=settings.aws_account_region)
         table = dynamodb.create_table(
-            TableName="books-integration",
+            TableName=settings.dynamodb_table,
             KeySchema=[{"AttributeName": "bookId", "KeyType": "HASH"}],
             AttributeDefinitions=[{"AttributeName": "bookId", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
