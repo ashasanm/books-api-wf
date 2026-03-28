@@ -46,6 +46,7 @@ books-api/
 │   ├── main.py          # FastAPI application & Mangum handler
 │   ├── schemas.py       # Pydantic request / response models
 │   ├── repository.py    # DynamoDB data access layer
+|   |__ settings.py      # Pydantic Setting (env load)
 │   └── routers/
 │       ├── __init__.py
 │       └── books.py     # POST /api/books  &  GET /api/books/{id}
@@ -133,8 +134,9 @@ npm install -g serverless@4
 
 ## Local Development
 
-### 1. Create a virtual environment and install dependencies
+> **Note:** If you are running from Windows, Please use WSL to avoid conflict or unable to import issue
 
+### 1. Create a virtual environment and install dependencies
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
@@ -311,15 +313,16 @@ A zero-dependency, single-file browser UI is included at `web/index.html`.
 
 **To use it:**
 
-1. Open `web/index.html` in any browser (double-click or `open web/index.html`).
-2. Set the **API Base URL** to your running API (local or AWS endpoint).
-3. Use the **Create a book** form to POST a new book.
-4. Use the **Retrieve a book** form to GET a book by id.
+1. Set the **API Base URL** to your running API (local or AWS endpoint).
+2. Use the **Create a book** form to POST a new book.
+3. Use the **Retrieve a book** form to GET a book by id. 
+4. Make sure you are on `/web` dir, run this command to serve `python3 -m http.server 8000`
+5. Open `localhost:8000` from any Browser
 
-The UI works directly against the live API — no build step, no server required.  
+The UI works directly against the live API — no build step.  
 It fulfils the bonus requirement of accessing the API from a web application running in a browser.
 
-> If you run the API locally and open the HTML file from disk, ensure CORS
+> If you run the API locally, ensure CORS
 > is enabled. FastAPI does not add CORS headers by default; add
 > `CORSMiddleware` to `app/main.py` for local development:
 >
