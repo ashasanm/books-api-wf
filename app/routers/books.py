@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from botocore.exceptions import ClientError
 
 from app.schemas import BookCreate, BookResponse
-from app import repository
+from app.repository import book_repository
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/books", tags=["books"])
     summary="Create a new book",
     responses={
         201: {"description": "Book created successfully"},
-        400: {"description": "Bad request – missing or invalid fields"},
+        400: {"description": "Bad request - missing or invalid fields"},
         500: {"description": "Internal server error"},
     },
 )
@@ -30,16 +30,16 @@ def create_book(book: BookCreate):
     - Returns **500 Internal Server Error** on unexpected failures.
     """
     try:
-        repository.create_book(book.model_dump())
+        book_repository.create(book.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
-    except ClientError as exc:
+    except ClientError:
         logger.exception("DynamoDB error while creating book")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again later.",
         )
-    except Exception as exc:
+    except Exception:
         logger.exception("Unexpected error while creating book")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -67,7 +67,7 @@ def get_book(book_id: str):
     - Returns **500 Internal Server Error** on unexpected failures.
     """
     try:
-        item = repository.get_book(book_id)
+        item = book_repository.get(book_id)
     except ClientError:
         logger.exception("DynamoDB error while fetching book '%s'", book_id)
         raise HTTPException(
