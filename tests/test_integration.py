@@ -1,6 +1,6 @@
 """
-Integration test - spins up a local DynamoDB table via moto and exercises the
-full request -> router -> repository -> DynamoDB stack.
+Integration test - exercises the full stack:
+Router -> Controller -> Service -> Repository -> DynamoDB (moto)
 
 Run with:
     pytest tests/test_integration.py -v
@@ -21,8 +21,10 @@ from app.repository import BookRepository
 @pytest.fixture()
 def client():
     """
-    Start moto, create the table, then inject a fresh BookRepository
-    instance that points at the moto-backed table.
+    Start moto, create the DynamoDB table, inject a real BookRepository
+    pointing at the moto-backed table into the service layer.
+
+    Flow: TestClient -> Router -> Controller -> Service -> moto DynamoDB
     """
     with mock_aws():
         dynamodb = boto3.resource("dynamodb", region_name=settings.aws_account_region)
@@ -33,11 +35,13 @@ def client():
             BillingMode="PAY_PER_REQUEST",
         )
 
-        # Create a real BookRepository but swap its table for the moto one
+        # Bypass __init__ to avoid a real boto3 connection,
+        # then inject the moto table directly
         repo = BookRepository.__new__(BookRepository)
         repo._table = table
 
-        with patch("app.routers.books.book_repository", repo):
+        # Patch at the service layer — where book_repository is actually used
+        with patch("app.services.books.book_repository", repo):
             with TestClient(app) as c:
                 yield c
 
