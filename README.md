@@ -197,12 +197,12 @@ Interactive docs: `http://localhost:8000/docs`
 
 ```bash
 # Create a book
-curl -s -X POST http://localhost:8000/api/books \
+curl -s -X POST http://localhost:8000/api/v1/books \
   -H "Content-Type: application/json" \
   -d '{"id":"/books/id1","author":"/authors/id1","name":"Fancy Tech","note":"Great book","serial":"C040102"}' | python -m json.tool
 
 # Retrieve the book
-curl -s http://localhost:8000/api/books/id1 | python -m json.tool
+curl -s http://localhost:8000/api/v1/books/id1 | python -m json.tool
 ```
 
 ---
