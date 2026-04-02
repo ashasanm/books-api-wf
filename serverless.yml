@@ -43,7 +43,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - ${param:allowedOrigins} # this should be change to web app endpoint
+        - ${param:allowedOrigins}
       allowedMethods:
         - GET
         - POST
@@ -75,10 +75,10 @@ functions:
     handler: app.main.handler
     events:
       - httpApi:
-          path: /api/books
+          path: /api/v1/books
           method: POST
       - httpApi:
-          path: /api/books/{book_id}
+          path: /api/v1/books/{book_id}
           method: GET
 
 resources:
