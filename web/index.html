@@ -165,9 +165,9 @@
   <input id="baseUrl" type="text" value="http://localhost:8000" placeholder="https://<api-gateway-id>.execute-api.us-east-1.amazonaws.com/dev" />
 </div>
 
-<!-- POST //api/v1/books -->
+<!-- POST /api/v1/books -->
 <div class="card">
-  <h2><span class="badge badge-post">POST</span> //api/v1/books — Create a book</h2>
+  <h2><span class="badge badge-post">POST</span> /api/v1/books — Create a book</h2>
   <label for="postBody">Request body (JSON)</label>
   <textarea id="postBody">{
   "id": "/books/id1",
@@ -184,9 +184,9 @@
   </div>
 </div>
 
-<!-- GET //api/v1/books/{id} -->
+<!-- GET /api/v1/books/{id} -->
 <div class="card">
-  <h2><span class="badge badge-get">GET</span> //api/v1/books/{id} — Retrieve a book</h2>
+  <h2><span class="badge badge-get">GET</span> /api/v1/books/{id} — Retrieve a book</h2>
   <label for="bookId">Book ID (short id, e.g. <code>id1</code>)</label>
   <input id="bookId" type="text" value="id1" />
   <button id="getBtn" onclick="getBook()">Send Request</button>
@@ -236,7 +236,7 @@
     btn.textContent = 'Sending…';
     try {
       const body = document.getElementById('postBody').value;
-      const resp = await fetch(`${base()}//api/v1/books`, {
+      const resp = await fetch(`${base()}/api/v1/books`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body,
@@ -257,7 +257,7 @@
     btn.textContent = 'Sending…';
     try {
       const id = document.getElementById('bookId').value.trim();
-      const resp = await fetch(`${base()}//api/v1/books/${encodeURIComponent(id)}`);
+      const resp = await fetch(`${base()}/api/v1/books/${encodeURIComponent(id)}`);
       const text = await resp.text();
       showResponse('get', resp.status, resp.statusText, text);
     } catch (e) {
