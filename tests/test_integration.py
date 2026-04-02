@@ -58,10 +58,10 @@ BOOK_PAYLOAD = {
 class TestBooksIntegration:
     def test_create_then_get_book(self, client):
         """Full round-trip: create a book, then retrieve it."""
-        post_resp = client.post("/api/books", json=BOOK_PAYLOAD)
+        post_resp = client.post("/api/v1/books", json=BOOK_PAYLOAD)
         assert post_resp.status_code == 201, post_resp.text
 
-        get_resp = client.get("/api/books/integ1")
+        get_resp = client.get("/api/v1/books/integ1")
         assert get_resp.status_code == 200
         body = get_resp.json()
         assert body["id"] == "/books/integ1"
@@ -69,18 +69,18 @@ class TestBooksIntegration:
         assert body["serial"] == "INT001"
 
     def test_get_nonexistent_book_returns_404(self, client):
-        get_resp = client.get("/api/books/doesnotexist")
+        get_resp = client.get("/api/v1/books/doesnotexist")
         assert get_resp.status_code == 404
 
     def test_create_duplicate_returns_400(self, client):
-        client.post("/api/books", json=BOOK_PAYLOAD)
-        second = client.post("/api/books", json=BOOK_PAYLOAD)
+        client.post("/api/v1/books", json=BOOK_PAYLOAD)
+        second = client.post("/api/v1/books", json=BOOK_PAYLOAD)
         assert second.status_code == 400
         assert "already exists" in second.json()["detail"]
 
     def test_create_missing_fields_returns_422(self, client):
         incomplete = {"id": "/books/x", "author": "/authors/x"}
-        resp = client.post("/api/books", json=incomplete)
+        resp = client.post("/api/v1/books", json=incomplete)
         assert resp.status_code == 422
 
     def test_create_multiple_books_and_retrieve_each(self, client):
@@ -89,10 +89,10 @@ class TestBooksIntegration:
             for i in range(1, 4)
         ]
         for book in books:
-            assert client.post("/api/books", json=book).status_code == 201
+            assert client.post("/api/v1/books", json=book).status_code == 201
 
         for book in books:
             book_id = book["id"].split("/")[-1]
-            resp = client.get(f"/api/books/{book_id}")
+            resp = client.get(f"/api/v1/books/{book_id}")
             assert resp.status_code == 200
             assert resp.json()["serial"] == book["serial"]
